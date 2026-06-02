@@ -37,3 +37,11 @@ Anyone can ask the plant a question and get an *auditable* answer in seconds; a 
 - **12-factor config:** `DATABASE_URL` via `dj-database-url`, `whitenoise` for static, `gunicorn` in prod, `runserver` in the compose dev override. Same image runs locally and on Render; only `DATABASE_URL` differs.
 - **Deploy:** `render.yaml` Blueprint (Docker web service + managed Postgres, `/healthz` health check, `ANTHROPIC_API_KEY` as a dashboard secret) so M8 is wired now. CI: GitHub Actions runs ruff + pytest against a Postgres service.
 - **M0 self-check:** the landing page and `/healthz` assert the three acceptance criteria live — page renders, Postgres answers, OR-Tools imports.
+
+### M1 domain-model choices (recorded as built)
+- **The model stores facts and read helpers; it does NOT enforce hard constraints.** `Worker.is_certified_for(op)` is a *query* the solver reads — certification/time-between-ops/capacity are enforced in the CP-SAT solver (M3), so the safety core stays in one place (CLAUDE.md invariants). Keeping enforcement out of the ORM avoids two competing sources of truth.
+- **time-between-ops** is `Operation.max_gap_after_minutes` (nullable) — the max minutes allowed between an op's end and its successor's start. Most transitions have no cap; the Bracket etch→anodize transition does. This is the domain constraint an AI-only engineer wouldn't model.
+- **AOG = a high tardiness weight,** not a separate queue. `Job.priority_weight` returns `AOG_WEIGHT` (100) when `is_aog`, else the stored weight, so the existing weighted-tardiness objective pulls AOG jobs earlier without special-casing the solver.
+- **Schedule is feasible-with-objective or infeasible-with-none** — the data shape itself refuses to present a half-built plan as feasible.
+- **Time grid:** `ScheduledOp` stores integer `start_minute`/`end_minute` from a `Schedule.horizon_start`, matching CP-SAT's integer interval variables (M3).
+- **Seed:** `build_sample_plant()` + `manage.py seed_plant` load a coherent (schedulable) minimal plant; M4 expands it to the full corpus with the tight expedite scenario.
