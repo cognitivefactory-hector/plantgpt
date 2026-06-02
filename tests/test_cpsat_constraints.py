@@ -7,7 +7,7 @@ hand-built or LLM-built plan as feasible — that is the whole safety thesis
 (CLAUDE.md invariants, SPEC §7).
 """
 
-from datetime import timedelta
+from datetime import UTC, datetime, time, timedelta
 
 import pytest
 from django.utils import timezone
@@ -45,8 +45,9 @@ def _ops_by_sequence(schedule):
 
 
 def _shift():
-    """An all-hours shift — shift time-of-day windows are a later M3 step."""
-    return Shift.objects.create(name="All", start_time="00:00", end_time="23:59")
+    """A round-the-clock shift (00:00→00:00 = a full 24h, contiguous across days),
+    so workers given this shift are always on duty."""
+    return Shift.objects.create(name="All", start_time=time(0, 0), end_time=time(0, 0))
 
 
 def _no_overlap(ops) -> bool:
@@ -267,3 +268,60 @@ def test_cpsat_beats_the_edd_baseline_on_weighted_tardiness():
     assert _weighted_tardiness(cpsat) < _weighted_tardiness(baseline)
     # The solver records its objective; it should match the realized weighted tardiness.
     assert cpsat.objective_value == pytest.approx(_weighted_tardiness(cpsat), abs=1)
+
+
+@pytest.mark.django_db
+def test_cpsat_only_assigns_a_worker_who_is_on_shift():
+    """An op forced into the evening (its resource is down until 18:00) must be staffed
+    by the night-shift worker — the day-shift worker is off duty then, certification
+    notwithstanding. horizon_start is pinned so the wall-clock shift math is deterministic."""
+    origin = datetime(2030, 1, 7, 0, 0, tzinfo=UTC)
+    cert = Certification.objects.create(code="C", name="Qualified")
+    res = Resource.objects.create(name="R", capacity=1)
+    day_shift = Shift.objects.create(name="Day", start_time=time(6), end_time=time(14))
+    night_shift = Shift.objects.create(name="Night", start_time=time(18), end_time=time(23, 59))
+    day = Worker.objects.create(name="DayWorker", shift=day_shift)
+    day.certifications.add(cert)
+    night = Worker.objects.create(name="NightWorker", shift=night_shift)
+    night.certifications.add(cert)
+    routing = Routing.objects.create(part_name="P")
+    Operation.objects.create(
+        routing=routing,
+        sequence=1,
+        name="op",
+        resource=res,
+        duration_minutes=60,
+        required_certification=cert,
+    )
+    Job.objects.create(routing=routing, quantity=1, due_date=origin + timedelta(hours=20))
+    # Resource R is down until 18:00 (1080 min), so the op cannot run during day shift.
+    MaintenanceWindow.objects.create(resource=res, start=origin, end=origin + timedelta(hours=18))
+
+    schedule = run_cpsat(horizon_start=origin)
+
+    assert schedule.feasible is True
+    so = schedule.scheduled_ops.get()
+    assert so.start_minute >= 18 * 60  # pushed into the evening by maintenance
+    assert so.worker_id == night.id  # only the night-shift worker is on duty then
+
+
+@pytest.mark.django_db
+def test_cpsat_stays_feasible_when_now_is_outside_every_shift():
+    """If the horizon starts mid-evening with only a day shift, the plan must wait for
+    the next on-shift window — feasible, not a false 'infeasible' from a short horizon."""
+    origin = datetime(2030, 1, 7, 20, 0, tzinfo=UTC)  # 20:00, after day shift
+    res = Resource.objects.create(name="R", capacity=1)
+    day_shift = Shift.objects.create(name="Day", start_time=time(6), end_time=time(14))
+    Worker.objects.create(name="Dana", shift=day_shift)
+    routing = Routing.objects.create(part_name="P")
+    Operation.objects.create(
+        routing=routing, sequence=1, name="op", resource=res, duration_minutes=60
+    )
+    Job.objects.create(routing=routing, quantity=1, due_date=origin + timedelta(days=2))
+
+    schedule = run_cpsat(horizon_start=origin)
+
+    assert schedule.feasible is True
+    so = schedule.scheduled_ops.get()
+    # 06:00 next day is +600 min from a 20:00 origin; the op waits for the shift to open.
+    assert so.start_minute >= 600
