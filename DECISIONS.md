@@ -45,3 +45,11 @@ Anyone can ask the plant a question and get an *auditable* answer in seconds; a 
 - **Schedule is feasible-with-objective or infeasible-with-none** — the data shape itself refuses to present a half-built plan as feasible.
 - **Time grid:** `ScheduledOp` stores integer `start_minute`/`end_minute` from a `Schedule.horizon_start`, matching CP-SAT's integer interval variables (M3).
 - **Seed:** `build_sample_plant()` + `manage.py seed_plant` load a coherent (schedulable) minimal plant; M4 expands it to the full corpus with the tight expedite scenario.
+
+### M2 dispatching-baseline choices (recorded as built)
+- **Baseline = a priority list-scheduler**, not an optimizer. Each step picks the highest-priority *ready* operation (by rule) and places it at the earliest minute a resource slot is free and the job's prior op has finished. Guarantees precedence + capacity; makes no optimality claim. It's the explainable foil that keeps the CP-SAT solver honest (and a fallback demo if the solver stalls — see the risk register).
+- **Capacity = N parallel slots per resource**, tracked as a min-heap of free-times; an op takes the earliest-free slot. At most `capacity` operations overlap, by construction.
+- **The baseline only enforces precedence + capacity.** It does NOT assign workers, and does NOT enforce certification or time-between-ops — those are the CP-SAT solver's hard constraints (M3). Keeping the baseline deliberately "dumber" makes the solver's added value visible and keeps a single home for hard-constraint enforcement.
+- **AOG is not special-cased in the baseline.** EDD/CR pull an AOG job forward only because its due date is soonest; the AOG *weight* is a soft objective for the solver, not the rule scheduler. (Observed: on the seed plant, EDD pulls the AOG lot first on the anodize tank purely via its due date.)
+- **Three rules (EDD / SPT / CR)** as required scope, each pinned by a test that distinguishes it — notably CR diverges from EDD when a later-due job has far less slack per unit work.
+- **Quantity is informational in M2:** an operation's `duration_minutes` is treated as the whole job's processing time for that step (one batch). Quantity-scaled durations can come later if needed.
