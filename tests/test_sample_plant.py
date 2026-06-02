@@ -1,12 +1,20 @@
-"""The M1 seed must load a *coherent* synthetic plant — one that could actually be
-scheduled. The full corpus (15–25 jobs, the tight expedite scenario) arrives in M4."""
+"""The seed must load a *coherent* synthetic plant — one that could actually be
+scheduled. As of M4 it is the full corpus (SPEC §5): 15–25 jobs across several
+routings, with maintenance windows and AOG hot lots."""
 
 import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
 from plant.data.sample import build_sample_plant
-from plant.model.models import Job, Operation, Routing, Worker
+from plant.model.models import (
+    Job,
+    MaintenanceWindow,
+    Operation,
+    Resource,
+    Routing,
+    Worker,
+)
 
 
 @pytest.mark.django_db
@@ -45,6 +53,18 @@ def test_plant_has_an_aog_job_that_outweighs_a_normal_job():
     normal = Job.objects.filter(is_aog=False).first()
     assert aog is not None and normal is not None
     assert aog.priority_weight > normal.priority_weight
+
+
+@pytest.mark.django_db
+def test_corpus_is_full_scale_per_spec_section_5():
+    build_sample_plant()
+
+    assert 15 <= Job.objects.count() <= 25
+    assert Routing.objects.count() >= 3
+    assert Worker.objects.count() >= 4
+    assert Resource.objects.count() >= 4
+    assert MaintenanceWindow.objects.exists()
+    assert 1 <= Job.objects.filter(is_aog=True).count() <= 2
 
 
 @pytest.mark.django_db
