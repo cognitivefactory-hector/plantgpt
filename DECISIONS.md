@@ -29,3 +29,11 @@ Anyone can ask the plant a question and get an *auditable* answer in seconds; a 
 - **Scheduler:** OR-Tools CP-SAT (interval vars, NoOverlap per resource, precedence + time-between-ops, cert/shift-limited worker assignment, weighted-tardiness objective) + an EDD/critical-ratio dispatching baseline as the explainable foil. Hard-constraint enforcement lives in the solver, never in LLM output.
 - **AI:** Anthropic SDK, tool use split into **read tools** and a **single gated propose tool** — no tool mutates the schedule directly.
 - **Host:** Render (Dockerized + Postgres) behind Cloudflare. Verify OR-Tools wheels install in the image early.
+
+### M0 scaffold choices (recorded as built)
+- **Python 3.12 / Django 5.1.** `python:3.12-slim` ships manylinux wheels for OR-Tools (verified: `ortools 9.15`), so the image needs no C build toolchain.
+- **Single `pyproject.toml`** for deps + ruff + pytest config (one source of truth); this is an application, not a distributable library.
+- **Layout:** a `config/` Django project (settings/urls/wsgi/asgi) + one `plant/` app holding `model/ scheduler/ query/ propose/ agent/ data/` subpackages — PLAN.md's layout mapped onto Django conventions. `plant/models.py` re-exports `plant/model/models.py` so the app loader finds the (future) domain model.
+- **12-factor config:** `DATABASE_URL` via `dj-database-url`, `whitenoise` for static, `gunicorn` in prod, `runserver` in the compose dev override. Same image runs locally and on Render; only `DATABASE_URL` differs.
+- **Deploy:** `render.yaml` Blueprint (Docker web service + managed Postgres, `/healthz` health check, `ANTHROPIC_API_KEY` as a dashboard secret) so M8 is wired now. CI: GitHub Actions runs ruff + pytest against a Postgres service.
+- **M0 self-check:** the landing page and `/healthz` assert the three acceptance criteria live — page renders, Postgres answers, OR-Tools imports.

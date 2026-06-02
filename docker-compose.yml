@@ -1,0 +1,37 @@
+# Local development: Django (web) + Postgres (db). Render hosts the same image
+# against a managed Postgres, so only the DATABASE_URL differs there.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: plantgpt
+      POSTGRES_USER: plantgpt
+      POSTGRES_PASSWORD: plantgpt
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plantgpt"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    # Override the prod gunicorn CMD with runserver for autoreload in dev.
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      DJANGO_DEBUG: "1"
+      DJANGO_SECRET_KEY: dev-insecure-key-not-for-production
+      DATABASE_URL: postgres://plantgpt:plantgpt@db:5432/plantgpt
+      DJANGO_ALLOWED_HOSTS: "*"
+      # ANTHROPIC_API_KEY is only needed once the agent layer lands (M5+).
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

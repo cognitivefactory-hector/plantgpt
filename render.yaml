@@ -1,0 +1,28 @@
+# Render Blueprint — Dockerized Django web service + managed Postgres.
+# Wired up in M0; the deploy is exercised in M8. ANTHROPIC_API_KEY is set as a
+# dashboard secret (sync:false), never committed.
+services:
+  - type: web
+    name: plantgpt
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /healthz
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: plantgpt-db
+          property: connectionString
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # RENDER_EXTERNAL_HOSTNAME is injected by Render automatically.
+
+databases:
+  - name: plantgpt-db
+    databaseName: plantgpt
+    user: plantgpt
+    plan: basic-256mb
