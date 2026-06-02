@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}PlantGPT{% endblock %}</title>
+  <style>
+    :root { --ink:#1a2b22; --paper:#f6f5f0; --line:#d8d6cc; --ok:#1d7a4d; --bad:#b3261e; --muted:#6b6f6a; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+           color:var(--ink); background:var(--paper); display:flex; flex-direction:column; min-height:100vh; }
+    header, main, footer { width:100%; max-width:880px; margin:0 auto; padding:0 24px; }
+    header { padding-top:40px; }
+    h1 { margin:0 0 4px; font-size:28px; letter-spacing:-0.01em; }
+    .tag { color:var(--muted); font-size:14px; }
+    main { flex:1; padding-top:24px; padding-bottom:48px; }
+    footer { border-top:1px solid var(--line); padding:18px 24px; color:var(--muted); font-size:13px; }
+    a { color:var(--ok); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PlantGPT</h1>
+    <div class="tag">Conversational plant-operations brain over a constraint-based scheduler.</div>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer>
+    Illustrative tool on synthetic data — not connected to any real MES/ERP,
+    not a shop-floor control system. The AI proposes; a qualified planner approves.
+  </footer>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}PlantGPT — M0 scaffold{% endblock %}
+{% block content %}
+  <style>
+    .status { display:inline-block; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:600; }
+    .status.ok { background:#e3f1e8; color:var(--ok); }
+    .status.bad { background:#f7e3e2; color:var(--bad); }
+    table.checks { width:100%; border-collapse:collapse; margin:18px 0 8px; }
+    table.checks th, table.checks td { text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+    table.checks th { font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); }
+    code { font-size:13px; color:var(--muted); word-break:break-word; }
+    .roadmap { margin-top:28px; font-size:14px; color:var(--muted); }
+  </style>
+
+  <p>
+    Scaffold (M0) is live.
+    {% if all_ok %}
+      <span class="status ok">all checks passing</span>
+    {% else %}
+      <span class="status bad">a check is failing</span>
+    {% endif %}
+  </p>
+
+  <table class="checks">
+    <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
+    <tbody>
+      {% for name, c in checks.items %}
+        <tr>
+          <td>{{ name }}</td>
+          <td>{% if c.ok %}<span class="status ok">ok</span>{% else %}<span class="status bad">fail</span>{% endif %}</td>
+          <td><code>{{ c.detail }}</code></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="roadmap">
+    Next: M1 domain model → M2 dispatching baseline → M3 CP-SAT solver (the safety core)
+    → M4 synthetic corpus → M5 Ask → M6 Propose → M7 UI → M8 deploy → M9 decision record.
+    See <code>PLAN.md</code>.
+  </p>
+{% endblock %}
