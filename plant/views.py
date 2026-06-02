@@ -15,12 +15,20 @@ def _checks() -> dict[str, dict]:
     """Run the M0 self-checks; never raise (a failure is reported, not 500)."""
     checks: dict[str, dict] = {}
 
-    # Postgres reachable?
+    # Database reachable? Connectivity (portable SELECT 1) is the pass/fail signal;
+    # the version string is best-effort display only.
     try:
         with connection.cursor() as cur:
-            cur.execute("SELECT version()")
-            version = cur.fetchone()[0]
-        checks["database"] = {"ok": True, "detail": version.split(",")[0]}
+            cur.execute("SELECT 1")
+            cur.fetchone()
+        detail = connection.vendor
+        try:
+            with connection.cursor() as cur:
+                cur.execute("SELECT version()")
+                detail = cur.fetchone()[0].split(",")[0]
+        except Exception:  # noqa: BLE001
+            pass
+        checks["database"] = {"ok": True, "detail": detail}
     except Exception as exc:  # noqa: BLE001
         checks["database"] = {"ok": False, "detail": str(exc)}
 
