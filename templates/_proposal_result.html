@@ -1,0 +1,13 @@
+<div class="panel reveal">
+  {% if approved %}
+    <div class="ph"><h2>Approved &amp; committed</h2><span class="chip mint">applied</span></div>
+    <p style="margin:0 0 14px">The request was re-solved and the new schedule is now the current board (schedule #{{ schedule.id }}). The change went through the constraint solver, so it cannot have violated a hard constraint.</p>
+    <a class="btn ok" href="{% url 'board' %}">View the updated board →</a>
+  {% elif rejected %}
+    <div class="ph"><h2>Rejected</h2><span class="chip red">no change</span></div>
+    <p style="margin:0">Nothing was applied. The board is unchanged; the rejection is in the audit trail.</p>
+  {% elif refused %}
+    <div class="ph"><h2>Refused</h2><span class="chip red">infeasible</span></div>
+    <p style="margin:0">The solver could not satisfy this change ({{ refused }}). It was rolled back — an infeasible plan can never be committed.</p>
+  {% endif %}
+</div>

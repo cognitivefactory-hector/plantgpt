@@ -24,7 +24,9 @@ services:
       DJANGO_SECRET_KEY: dev-insecure-key-not-for-production
       DATABASE_URL: postgres://plantgpt:plantgpt@db:5432/plantgpt
       DJANGO_ALLOWED_HOSTS: "*"
-      # ANTHROPIC_API_KEY is only needed once the agent layer lands (M5+).
+      # Pass an ANTHROPIC_API_KEY from the host shell to enable the Ask/Propose AI
+      # layer locally (the board, solver, and audit work without it).
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     volumes:
       - .:/app
     ports:

@@ -20,3 +20,8 @@ db.sqlite3
 .DS_Store
 .idea/
 .vscode/
+
+# Playwright MCP scratch (screenshots, snapshots)
+.playwright-mcp/
+/board.png
+/m7-board.png

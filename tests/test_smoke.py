@@ -20,12 +20,12 @@ def test_ortools_imports_and_builds_a_model():
 
 
 @pytest.mark.django_db
-def test_home_page_serves_and_reports_checks(client):
-    resp = client.get("/")
+def test_board_page_serves_with_the_disclaimer(client):
+    resp = client.get("/")  # the schedule board is the landing page (M7)
     assert resp.status_code == 200
     assert b"PlantGPT" in resp.content
-    # The disclaimer must be present on every page.
-    assert b"not a shop-floor control system" in resp.content
+    # The not-a-control-system disclaimer must be present on every page.
+    assert b"Not a shop-floor control system" in resp.content
 
 
 @pytest.mark.django_db

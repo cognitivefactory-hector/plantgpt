@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Schedule board — PlantGPT{% endblock %}
+{% block content %}
+  <div class="page-head reveal">
+    <div class="eyebrow">Schedule board</div>
+    <h1>The floor, time-phased</h1>
+    <p>A feasible plan for the synthetic anodizing plant. Every bar is constraint-checked by the CP-SAT solver — certified operators only, time-between-ops honored, capacity respected.</p>
+  </div>
+
+  <div class="stats reveal" style="animation-delay:.04s">
+    <div class="stat"><div class="k">Jobs</div><div class="v">{{ stats.jobs }}</div></div>
+    <div class="stat hot"><div class="k">AOG lots</div><div class="v">{{ stats.aog }}</div></div>
+    <div class="stat late"><div class="k">Late</div><div class="v">{{ stats.late }}</div></div>
+    <div class="stat"><div class="k">Resources</div><div class="v">{{ stats.resources }}</div></div>
+    <div class="stat"><div class="k">Workers</div><div class="v">{{ stats.workers }}</div></div>
+  </div>
+
+  <div class="grid reveal" style="grid-template-columns:1fr; animation-delay:.08s">
+    <div class="panel">
+      <div class="ph" style="flex-wrap:wrap; gap:12px">
+        <h2>Gantt — by {{ by }}</h2>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+          <span class="seg">
+            <a href="?solver=cpsat&by={{ by }}" class="{% if solver == 'cpsat' %}on{% endif %}">CP-SAT</a>
+            <a href="?solver=baseline&by={{ by }}" class="{% if solver == 'baseline' %}on{% endif %}">Baseline</a>
+          </span>
+          <span class="seg">
+            <a href="?solver={{ solver }}&by=resource" class="{% if by == 'resource' %}on{% endif %}">By resource</a>
+            <a href="?solver={{ solver }}&by=job" class="{% if by == 'job' %}on{% endif %}">By job</a>
+          </span>
+          {% if seeded %}
+            <form method="post" action="{% url 'solve' %}" style="display:inline">{% csrf_token %}
+              <button class="btn primary" type="submit">Re-solve</button>
+            </form>
+          {% else %}
+            <form method="post" action="{% url 'seed' %}" style="display:inline">{% csrf_token %}
+              <button class="btn primary" type="submit">Seed plant</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if not seeded %}
+        <p class="mono" style="color:var(--muted); padding:24px 4px">No plant loaded. <strong style="color:var(--text)">Seed plant</strong> to load the synthetic corpus (16 jobs across 4 routings).</p>
+      {% elif not schedule %}
+        <p class="mono" style="color:var(--muted); padding:24px 4px">Plant loaded, no {{ solver|upper }} schedule yet. Hit <strong style="color:var(--text)">Re-solve</strong>.</p>
+      {% endif %}
+      {{ gantt|safe }}
+      {% if solver == 'baseline' %}
+        <p class="mono" style="color:var(--dim); font-size:12px; margin-top:10px">Baseline = explainable EDD list-scheduler (precedence + capacity only). The honest foil that keeps the solver visible.</p>
+      {% endif %}
+    </div>
+
+    <div class="panel">
+      <div class="ph"><h2>Resource utilization — bottleneck on top</h2>
+        {% if schedule %}<span class="chip mint">CP-SAT · feasible</span>{% endif %}
+      </div>
+      {{ utilization|safe }}
+    </div>
+  </div>
+{% endblock %}

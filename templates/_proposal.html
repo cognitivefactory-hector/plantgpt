@@ -1,0 +1,50 @@
+{% if error %}
+  <div class="panel reveal"><p class="mono" style="color:var(--red); margin:0">{{ error }}</p></div>
+{% else %}
+  <div class="panel reveal">
+    <div class="ph">
+      <h2>Proposed change</h2>
+      {% if result.recommendation == 'approve' %}<span class="chip mint">recommend · approve</span>
+      {% elif result.recommendation == 'caution' %}<span class="chip amber">recommend · caution</span>
+      {% else %}<span class="chip red">recommend · reject</span>{% endif %}
+    </div>
+
+    <p style="font-size:16px; line-height:1.6; margin:0 0 18px">{{ result.narrative }}</p>
+
+    {% with p=result.proposal %}
+      {% if not p.feasible %}
+        <div class="chip red" style="font-size:13px">⚠ Re-solving under this request is INFEASIBLE — it cannot be committed.</div>
+      {% else %}
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px">
+          <div class="stat"><div class="k">Weighted tardiness</div>
+            <div class="v" style="font-size:20px">{{ p.tardiness_before|floatformat:0 }} → <span style="color:{% if p.tardiness_after > p.tardiness_before %}var(--red){% else %}var(--mint){% endif %}">{{ p.tardiness_after|floatformat:0 }}</span></div></div>
+          <div class="stat late"><div class="k">Lots that slip</div><div class="v">{{ p.diff.slipped_job_ids|length }}</div></div>
+          <div class="stat"><div class="k">Lots improved</div><div class="v">{{ p.diff.improved_job_ids|length }}</div></div>
+        </div>
+        <div class="mono" style="font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin-bottom:8px">Scheduler request (the only write path)</div>
+        <pre style="margin:0 0 18px; background:var(--ink); border:1px solid var(--line); border-radius:8px; padding:11px 13px; font-size:13px; color:var(--amber)">{{ result.request.kind }} · {{ result.request.params }}</pre>
+      {% endif %}
+    {% endwith %}
+
+    {% if result.request and result.proposal.feasible %}
+      <div style="display:flex; gap:10px; border-top:1px solid var(--line); padding-top:16px">
+        <form hx-post="{% url 'propose_approve' %}" hx-target="#prop-out" hx-swap="innerHTML">
+          {% csrf_token %}<input type="hidden" name="request_json" value="{{ request_json }}">
+          <button class="btn ok" type="submit">Approve &amp; commit</button>
+        </form>
+        <form hx-post="{% url 'propose_reject' %}" hx-target="#prop-out" hx-swap="innerHTML">
+          {% csrf_token %}<input type="hidden" name="request_json" value="{{ request_json }}">
+          <button class="btn danger" type="submit">Reject</button>
+        </form>
+        <span class="mono" style="margin-left:auto; align-self:center; color:var(--dim); font-size:12px">You decide. The AI cannot commit.</span>
+      </div>
+    {% elif result.request %}
+      <div style="border-top:1px solid var(--line); padding-top:16px">
+        <form hx-post="{% url 'propose_reject' %}" hx-target="#prop-out" hx-swap="innerHTML">
+          {% csrf_token %}<input type="hidden" name="request_json" value="{{ request_json }}">
+          <button class="btn danger" type="submit">Dismiss</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}

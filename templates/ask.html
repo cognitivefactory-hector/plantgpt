@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Ask — PlantGPT{% endblock %}
+{% block content %}
+  <div class="page-head reveal">
+    <div class="eyebrow">Ask · read-only</div>
+    <h1>Ask the floor in plain English</h1>
+    <p>The agent answers from typed, read-only queries — and shows you the exact query it ran. It can read the schedule; it cannot change it.</p>
+  </div>
+
+  <div class="panel reveal" style="animation-delay:.04s">
+    <form hx-post="{% url 'ask_run' %}" hx-target="#ask-out" hx-swap="innerHTML" hx-disabled-elt="button">
+      {% csrf_token %}
+      <input type="text" name="question" placeholder="e.g. Which lots will miss their due date? · What's the bottleneck tank?" autocomplete="off">
+      <div style="display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap">
+        <button class="btn primary" type="submit">Run query</button>
+        <span class="htmx-indicator mono" style="color:var(--muted); font-size:12px">querying…</span>
+      </div>
+    </form>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px">
+      <button class="btn try" type="button" onclick="askq(this)">Which lots will miss their due date?</button>
+      <button class="btn try" type="button" onclick="askq(this)">What is the bottleneck resource?</button>
+      <button class="btn try" type="button" onclick="askq(this)">List the AOG lots</button>
+    </div>
+    <script>
+      function askq(b){ const i=document.querySelector('input[name=question]'); i.value=b.textContent; i.focus(); }
+    </script>
+    {% if not ai_enabled %}
+      <p class="mono" style="color:var(--amber); font-size:12.5px; margin-top:14px">⚠ ANTHROPIC_API_KEY not configured — set it to enable the AI layer. The board works without it.</p>
+    {% endif %}
+  </div>
+
+  <div id="ask-out" style="margin-top:18px"></div>
+{% endblock %}
