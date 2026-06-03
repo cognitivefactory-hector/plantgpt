@@ -11,6 +11,10 @@ services:
     envVars:
       - key: DJANGO_DEBUG
         value: "0"
+      # The custom domain. The *.onrender.com host is trusted automatically via
+      # RENDER_EXTERNAL_HOSTNAME, so only the Cloudflare domain needs listing here.
+      - key: DJANGO_ALLOWED_HOSTS
+        value: "plant.hector-garza.com"
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: DATABASE_URL

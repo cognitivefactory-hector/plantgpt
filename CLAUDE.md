@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 PlantGPT is a portfolio flagship: a constraint-based production scheduler (Pillar A) with a gated conversational AI layer on top (Pillar B). It models a synthetic wet-process plant (clean → etch → anodize → seal → inspect). **It is illustrative, on synthetic data — not connected to any MES/ERP and not a shop-floor control system.** Keep that disclaimer in the README footer and UI.
 
-The repo is currently **scaffold-only**: `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `README.md`, `LICENSE`, `.gitignore`. No application code, build tooling, or tests exist yet. The build follows `PLAN.md` milestones **M0 → M9**.
+The build follows `PLAN.md` milestones **M0 → M10**. As of M8, M0–M8 are built and merged: the Django app, domain model, dispatching baseline, CP-SAT solver, synthetic corpus + disruption re-solve, the read-only Ask layer, the gated Propose layer, the UI (board / Ask / Propose / Audit), and the deploy prep. M9 publishes to Render + Cloudflare; M10 is the Decision Record + whiteboard.
 
 This is one of **three equal deliverables**: the app, the Decision Record (`DECISIONS.md`), and a recorded whiteboard session. The judgment behind the design is graded as heavily as the code — keep `DECISIONS.md` updated live as decisions are made (see its "Engineering decisions (recorded as built)" section).
 
 ## Source of truth — read these first
 
 - **`SPEC.md`** — full product spec, architecture diagram (§6), CP-SAT model details (§7), synthetic-data design (§5), non-goals (§4.4).
-- **`PLAN.md`** — the M0→M9 build sequence with per-milestone tasks, acceptance criteria, suggested repo layout (§"Suggested repo layout"), and testing strategy.
+- **`PLAN.md`** — the M0→M10 build sequence with per-milestone tasks, acceptance criteria, suggested repo layout (§"Suggested repo layout"), and testing strategy.
 - **`DECISIONS.md`** — the Situation/Decision/Risk/Change record; update as you build.
 
 Do not duplicate those documents here. When in doubt about scope or sequencing, they win.

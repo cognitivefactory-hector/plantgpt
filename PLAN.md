@@ -92,7 +92,15 @@ The hardest decision (AI proposes, the constraint-enforcing scheduler + human di
 - [ ] Optional: `plant.hector-garza.com`.
 - **Acceptance:** public URL works from a fresh browser; full flow runs deployed.
 
-### M9 — Decision Record + Whiteboard session *(½ day)* — **do not skip; this is the differentiator**
+### M9 — Publish: Render + Cloudflare *(½ day)*
+- [ ] Provision on **Render** from the `render.yaml` Blueprint (Docker web service + managed Postgres); enter `ANTHROPIC_API_KEY` in the dashboard (or leave blank — board/solver/audit work without it).
+- [ ] Front it with **Cloudflare** at `plant.hector-garza.com` (CNAME → the Render service; SSL **Full (strict)**; verify the custom domain in Render).
+- [ ] Smoke-test the public URL (`/healthz`, board, solver, toggles; Ask/Propose once the key is set).
+- [ ] Update the README live-demo link.
+- **Step-by-step runbook:** [`DEPLOY.md`](./DEPLOY.md).
+- **Acceptance:** `plant.hector-garza.com` serves the app over HTTPS; the full flow runs deployed.
+
+### M10 — Decision Record + Whiteboard session *(½ day)* — **do not skip; this is the differentiator**
 - [ ] Complete `DECISIONS.md` (Situation/Decision/Risk/Change; rejected auto-commit/free-form/heuristic-only; accepted advisory-not-autonomous).
 - [ ] Record the 5–8 min whiteboard session using `SPEC.md` §3.1 — center challenge #3 (why AI re-sequencing isn't reckless) and #6 (the change you recommended against).
 - [ ] Embed/link the recording in README and on hector-garza.com.
@@ -133,7 +141,7 @@ plantgpt/
 | NL query mutates data | Typed read-only tools; no mutation tool exists; test it. |
 | OR-Tools won't install/run in the deploy image | Verify in M0; pin versions; test in the container early. |
 | Leaking `ANTHROPIC_API_KEY` / employer data | `.env` gitignored; host secrets; synthetic plant only. |
-| Skipping M9 because the app "looks done" | M9 *is* the portfolio. The "AI proposes, never commits" story is the whole point. |
+| Skipping M10 because the app "looks done" | M10 *is* the portfolio. The "AI proposes, never commits" story is the whole point. |
 
 ## Definition of Done
 See `SPEC.md` §8 — all three deliverables (app, decision record, whiteboard recording) exist and are linked from the README; hard constraints are provably enforced (tested); the read-only query and propose→approve gate are tested; and an AI proposal can never produce or commit an infeasible schedule.

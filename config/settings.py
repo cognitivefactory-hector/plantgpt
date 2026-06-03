@@ -25,16 +25,26 @@ def _env_bool(name: str, default: str = "0") -> bool:
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-insecure-key-not-for-production")
 DEBUG = _env_bool("DJANGO_DEBUG", "0")
 
+# Hosts we serve from. In prod set DJANGO_ALLOWED_HOSTS to the full list, e.g.
+# "plant.hector-garza.com,plantgpt.onrender.com" — the custom domain first.
 _allowed = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 ALLOWED_HOSTS = [h.strip() for h in _allowed.split(",") if h.strip()]
 
-# Render terminates TLS at its proxy and serves the app over a *.onrender.com host;
-# trust that host and the forwarded-proto header when present.
+# Render injects its own *.onrender.com host; always trust it too.
 RENDER_HOST = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-if RENDER_HOST:
+if RENDER_HOST and RENDER_HOST not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_HOST)
-    CSRF_TRUSTED_ORIGINS = [f"https://{RENDER_HOST}"]
+
+# Behind Render (and Cloudflare) TLS terminates at the proxy; trust the forwarded
+# proto, and trust the HTTPS origin of every real host we serve so POST/CSRF works
+# on both the onrender.com host and the custom domain (plant.hector-garza.com).
+if not DEBUG or RENDER_HOST:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{h}"
+    for h in ALLOWED_HOSTS
+    if h not in ("*", "localhost") and not h.startswith("127.")
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
