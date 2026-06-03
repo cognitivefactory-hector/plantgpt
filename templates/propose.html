@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Propose — PlantGPT{% endblock %}
+{% block content %}
+  <div class="page-head reveal">
+    <div class="eyebrow">Propose · gated write</div>
+    <h1>Test a change before you commit it</h1>
+    <p>Describe an intent. The agent turns it into one scheduler request, re-solves through the constraint solver, and shows you exactly what it costs. <strong style="color:var(--text)">Nothing is applied until you approve</strong> — and an infeasible change can never be committed.</p>
+  </div>
+
+  <div class="panel reveal" style="animation-delay:.04s">
+    <form hx-post="{% url 'propose_run' %}" hx-target="#prop-out" hx-swap="innerHTML" hx-disabled-elt="button">
+      {% csrf_token %}
+      <input type="text" name="intent" placeholder="e.g. Expedite the Hot-Lot for AOG · Free up the anodize tank tomorrow morning" autocomplete="off">
+      <div style="display:flex; gap:10px; align-items:center; margin-top:12px">
+        <button class="btn primary" type="submit">Preview impact</button>
+        <span class="htmx-indicator mono" style="color:var(--muted); font-size:12px">re-solving…</span>
+      </div>
+    </form>
+    {% if not has_schedule %}
+      <p class="mono" style="color:var(--amber); font-size:12.5px; margin-top:14px">⚠ No current schedule — solve the board first.</p>
+    {% endif %}
+    {% if not ai_enabled %}
+      <p class="mono" style="color:var(--amber); font-size:12.5px; margin-top:8px">⚠ ANTHROPIC_API_KEY not configured — set it to enable the AI layer.</p>
+    {% endif %}
+  </div>
+
+  <div id="prop-out" style="margin-top:18px"></div>
+{% endblock %}

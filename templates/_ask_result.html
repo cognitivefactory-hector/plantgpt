@@ -1,0 +1,22 @@
+{% if error %}
+  <div class="panel reveal"><p class="mono" style="color:var(--red); margin:0">{{ error }}</p></div>
+{% else %}
+  <div class="panel reveal">
+    <div class="ph">
+      <h2>Answer</h2>
+      {% if result.confidence == 'high' %}<span class="chip mint">confidence · high</span>
+      {% elif result.confidence == 'medium' %}<span class="chip amber">confidence · medium</span>
+      {% else %}<span class="chip red">confidence · low</span>{% endif %}
+    </div>
+    <p style="font-size:16px; line-height:1.6; margin:0 0 18px">{{ result.narrative }}</p>
+
+    <div style="border-top:1px solid var(--line); padding-top:14px">
+      <div class="mono" style="font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin-bottom:8px">Query it ran (read-only, auditable)</div>
+      {% for q in result.shown_queries %}
+        <pre style="margin:0 0 8px; background:var(--ink); border:1px solid var(--line); border-radius:8px; padding:11px 13px; font-size:13px; color:var(--mint); overflow:auto">{{ q.tool }}({% for k, v in q.args.items %}{{ k }}={{ v }}{% if not forloop.last %}, {% endif %}{% endfor %})</pre>
+      {% empty %}
+        <p class="mono" style="color:var(--muted); font-size:13px; margin:0">No tool was called.</p>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}

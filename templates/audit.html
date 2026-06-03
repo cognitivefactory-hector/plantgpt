@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Audit trail — PlantGPT{% endblock %}
+{% block content %}
+  <div class="page-head reveal">
+    <div class="eyebrow">Audit trail</div>
+    <h1>Every query and every decision, logged</h1>
+    <p>The verifiable record: each read-only query (with the query it ran), each proposed change, and each approval or rejection.</p>
+  </div>
+
+  <div class="panel reveal" style="animation-delay:.04s; padding:0; overflow:hidden">
+    <table style="width:100%; border-collapse:collapse; font-size:14px">
+      <thead><tr style="text-align:left; color:var(--dim)">
+        <th style="padding:12px 18px; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:500">When</th>
+        <th style="padding:12px 18px; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:500">Kind</th>
+        <th style="padding:12px 18px; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:500">Detail</th>
+      </tr></thead>
+      <tbody>
+        {% for e in events %}
+          <tr style="border-top:1px solid var(--line)">
+            <td class="mono" style="padding:12px 18px; color:var(--muted); white-space:nowrap">{{ e.created_at|date:"M d · H:i:s" }}</td>
+            <td style="padding:12px 18px">
+              {% if e.kind == 'query' %}<span class="chip mint">query</span>
+              {% elif e.kind == 'proposal' %}<span class="chip amber">proposal</span>
+              {% elif e.kind == 'approval' %}<span class="chip mint">approval</span>
+              {% else %}<span class="chip red">{{ e.kind }}</span>{% endif %}
+            </td>
+            <td style="padding:12px 18px; color:var(--text)">{{ e.note }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="3" class="mono" style="padding:24px 18px; color:var(--muted)">No events yet. Run an Ask or a Propose.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
