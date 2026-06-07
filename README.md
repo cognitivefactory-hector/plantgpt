@@ -104,7 +104,7 @@ The suite covers the crown jewels: the solver's hard-constraint enforcement (no 
 
 ## Links
 
-- 🔗 **Live demo:** _TBD (Render — `plant.hector-garza.com` planned)_
+- 🔗 **Live demo:** **https://plant.hector-garza.com** (Dockerized Django + Postgres on Render, fronted by Cloudflare)
 - 🧠 **Decision record:** [`DECISIONS.md`](./DECISIONS.md) — Situation · Decision · Risk · Change
 - 🎥 **Whiteboard walkthrough:** _TBD_
 - 📐 **Spec & plan:** [`SPEC.md`](./SPEC.md) · [`PLAN.md`](./PLAN.md)
