@@ -100,6 +100,14 @@ for the forwarded-proto), so the Seed/Solve/Ask/Propose forms work over the prox
 Service → **Environment** → set `ANTHROPIC_API_KEY` → **Save** (Render redeploys). The key is
 masked in the dashboard and never appears in the repo, build logs, or `git`.
 
+## Production hardening (automatic on Render)
+
+When `RENDER_EXTERNAL_HOSTNAME` is present (i.e. running on Render), the app turns on
+HTTPS redirect (with `/healthz` exempt so Render's probe still gets `200`), `Secure`
+session + CSRF cookies, and the forwarded-proto trust — no extra config needed. **HSTS
+is opt-in** (it's hard to undo on a real domain): set `DJANGO_HSTS_SECONDS` (e.g.
+`31536000`) in the Render dashboard once you're confident the domain is HTTPS-only.
+
 ## Cost guard
 The agent runs on demand (button-triggered), prompt-cached, and `max_tokens`-capped — AI spend
 is bounded and only incurred when a planner actually asks or proposes.
