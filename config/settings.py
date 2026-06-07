@@ -46,6 +46,19 @@ CSRF_TRUSTED_ORIGINS = [
     if h not in ("*", "localhost") and not h.startswith("127.")
 ]
 
+# Production hardening — applied only when actually deployed (Render sets this host),
+# so the local dev server and the test client still work over plain HTTP.
+if RENDER_HOST:
+    SECURE_SSL_REDIRECT = True
+    # ...but let Render's HTTP health probe through (it may not carry X-Forwarded-Proto).
+    SECURE_REDIRECT_EXEMPT = [r"^healthz$"]
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # HSTS is opt-in (it's hard to undo on a real domain): set DJANGO_HSTS_SECONDS to enable.
+    SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "0"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+    SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
